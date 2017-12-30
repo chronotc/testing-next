@@ -17,12 +17,53 @@ function get(url) {
   });
 }
 
+const Column = ({ children }) => <span style={{display: 'inline-block', width: '200px'}}>{ children }</span>
+
 const Page = ({ coins }) => {
   return (
     <div>
-      PRICE PER COIN if supply was capped at 100000000 (100 million):
+      <div>
+        <Column>
+          normalized price per coin if supply was (100 million)
+        </Column>
+        <Column>
+          name
+        </Column>
+        <Column>
+          market cap divided by leader market cap
+        </Column>
+        <Column>
+          price to match leader market cap
+        </Column>
+        <Column>
+          current price
+        </Column>
+        <Column>
+          potential (higher is better)
+        </Column>
+      </div>
       {
-        coins.map((coin, i) => <div key={i}>{`#${i+1} | name - ${coin.name} | normalized - ${coin.normalized} | percentage of leader ${coin.percentageOfLeader} | price to surpass leader - ${coin.goal}`} </div>)
+        coins.map((coin, i) =>
+          <div key={i}>
+            <Column>
+              {`#${i+1}`}
+            </Column>
+            <Column>
+              { coin.name }
+            </Column>
+            <Column>
+              { coin.percentageOfLeader }
+            </Column>
+            <Column>
+              { coin.goal }
+            </Column>
+            <Column>
+              { coin.current }
+            </Column>
+            <Column>
+              { coin.potential }
+            </Column>
+          </div>)
       }
     </div>
   )
@@ -35,11 +76,14 @@ Page.getInitialProps = async ({ req }) => {
   const coins = body.map(({ name, market_cap_usd, price_usd, total_supply }) => {
     const normalized = new BigNumber(market_cap_usd).div(100000000).toNumber();
     const percentageOfLeader = new BigNumber(market_cap_usd).div(leaderMarketCap).toFixed(5);
+    const goal = new BigNumber(price_usd).div(percentageOfLeader).toFixed(2)
     return {
       name,
       normalized,
       percentageOfLeader,
-      goal: new BigNumber(price_usd).div(percentageOfLeader).toNumber()
+      goal,
+      current: price_usd,
+      potential: new BigNumber(goal).div(price_usd).times(100).minus(100).toFixed(2)
     };
   });
 
